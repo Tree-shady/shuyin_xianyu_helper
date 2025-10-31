@@ -50,7 +50,6 @@ def left_click_position(hwd, x_position, y_position, sleep_time):
             win32api.SendMessage(hwd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, long_position)
         else:
             # 窗口句柄为None时，使用绝对屏幕坐标
-            import win32con
             # 移动鼠标到指定位置
             win32api.SetCursorPos((x_position, y_position))
             # 模拟鼠标点击

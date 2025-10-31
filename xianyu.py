@@ -2,9 +2,12 @@ import json
 import re
 import sys
 import time
+import random
 import warnings
 import easyocr
 import win32gui
+import win32con
+import pyautogui
 import cv2
 import numpy as np
 import argparse
@@ -455,6 +458,9 @@ class XianYuHelper:
         Returns:
             bool: 点击是否成功
         """
+        import random
+        import time
+        
         logger.info(f"尝试点击底部按钮: {button_name}")
         
         try:
@@ -488,72 +494,136 @@ class XianYuHelper:
                     
                     # 使用直接的屏幕坐标估算（基于按钮在底部栏的位置）
                     # 这些值可以根据实际游戏界面进行调整
-                    fallback_y = 950  # 调整为更准确的底部按钮Y坐标
+                    # 优化的备用坐标，增加随机性以模拟人类点击
+                    fallback_y = 970  # 优化的底部按钮Y坐标
                     fallback_x_values = {
-                        '咸将': 120,   # 微调坐标
-                        '装备': 250,   # 调整装备按钮的X坐标，原220可能不准确
-                        '战斗': 380,   # 微调坐标
-                        '宝箱': 510,   # 微调坐标
-                        '副本': 640    # 微调坐标
+                        '咸将': 100,   # 优化的坐标
+                        '装备': 260,   # 优化的装备按钮坐标
+                        '战斗': 420,   # 优化的坐标
+                        '宝箱': 580,   # 优化的坐标
+                        '副本': 740    # 优化的坐标
                     }
                     
                     if button_name in fallback_x_values:
-                        screen_x = fallback_x_values[button_name]
-                        screen_y = fallback_y
-                        logger.info(f"使用备用策略的按钮坐标: ({screen_x}, {screen_y}) - 已调整坐标值以提高准确性")
+                        # 基础坐标 + 随机偏移，模拟人类行为
+                        base_x = fallback_x_values[button_name]
+                        base_y = fallback_y
+                        
+                        # 添加±10像素的随机偏移
+                        random_offset_x = random.randint(-10, 10)
+                        random_offset_y = random.randint(-5, 5)
+                        
+                        screen_x = base_x + random_offset_x
+                        screen_y = base_y + random_offset_y
+                        
+                        logger.info(f"使用备用策略的按钮坐标: ({base_x}, {base_y}) + 随机偏移 ({random_offset_x}, {random_offset_y}) = ({screen_x}, {screen_y})")
                     else:
                         logger.error(f"无法确定按钮 '{button_name}' 的备用坐标")
                         return False
                 
-                # 执行点击操作 - 添加重试机制
-                max_attempts = 2
+                # 执行点击操作 - 添加改进的重试机制
+                max_attempts = 3  # 增加重试次数
                 success = False
                 
                 for attempt in range(max_attempts):
-                    logger.info(f"尝试点击按钮 {button_name} (尝试 {attempt + 1}/{max_attempts})")
+                    # 每次尝试都添加小的随机偏移
+                    final_x = screen_x + random.randint(-3, 3)
+                    final_y = screen_y + random.randint(-2, 2)
                     
-                    if window_available:
-                        # 窗口可用时，使用窗口相对坐标点击
-                        success = self.game_helper.left_click(screen_x, screen_y, delay=0.5)
-                    else:
-                        # 窗口不可用时，使用绝对屏幕坐标直接点击
-                        # 直接调用windows模块的left_click_position函数，使用None作为hwnd参数表示点击屏幕坐标
-                        logger.info(f"使用绝对屏幕坐标点击: ({screen_x}, {screen_y})")
-                        import windows
-                        try:
-                            # 直接调用windows模块的left_click_position函数，传入None作为hwnd表示点击屏幕坐标
-                            windows.left_click_position(None, screen_x, screen_y, sleep_time=0.5)
-                            success = True
-                        except Exception as e:
-                            logger.error(f"直接点击屏幕坐标时出错: {e}")
-                            success = False
+                    logger.info(f"尝试点击按钮 {button_name} (尝试 {attempt + 1}/{max_attempts})，坐标: ({final_x}, {final_y})")
+                    
+                    try:
+                        if window_available:
+                            # 窗口可用时，使用窗口相对坐标点击
+                            # 计算相对坐标
+                            rel_click_x = final_x - self.game_helper.left
+                            rel_click_y = final_y - self.game_helper.top
+                            
+                            # 记录点击类型
+                            logger.debug(f"使用窗口相对坐标点击: ({rel_click_x}, {rel_click_y})")
+                            
+                            # 尝试使用不同的点击方式
+                            success = self.game_helper.left_click(final_x, final_y, delay=0.5)
+                            
+                            # 如果失败，尝试直接使用SendMessage方式
+                            if not success and hasattr(self.game_helper, 'hwnd') and self.game_helper.hwnd:
+                                logger.debug("尝试使用SendMessage方式点击")
+                                import windows
+                                try:
+                                    windows.left_click_position(self.game_helper.hwnd, final_x, final_y, sleep_time=0.5)
+                                    success = True
+                                except Exception as e:
+                                    logger.debug(f"SendMessage点击失败: {e}")
+                        else:
+                            # 窗口不可用时，使用绝对屏幕坐标直接点击
+                            logger.info(f"使用绝对屏幕坐标点击: ({final_x}, {final_y})")
+                            import windows
+                            
+                            # 尝试不同的点击方法
+                            try:
+                                # 方法1: 直接调用windows模块的left_click_position
+                                windows.left_click_position(None, final_x, final_y, sleep_time=0.5)
+                                success = True
+                            except Exception as e1:
+                                logger.warning(f"方法1点击失败: {e1}")
+                                # 方法2: 尝试使用pyautogui作为备用
+                                try:
+                                    import pyautogui
+                                    # 移动鼠标到目标位置
+                                    pyautogui.moveTo(final_x, final_y, duration=0.2 + random.random() * 0.3)  # 添加随机移动时间
+                                    # 点击
+                                    pyautogui.click()
+                                    logger.info("使用pyautogui备用方法点击成功")
+                                    success = True
+                                except Exception as e2:
+                                    logger.error(f"方法2点击失败: {e2}")
+                                    success = False
+                    except Exception as e:
+                        logger.error(f"点击过程中发生异常: {e}")
+                        success = False
                     
                     if success:
                         logger.info(f"第 {attempt + 1} 次尝试成功点击按钮: {button_name}")
                         break
                     else:
                         logger.warning(f"第 {attempt + 1} 次尝试点击按钮 {button_name} 失败，准备重试...")
-                        # 稍微调整坐标进行重试
-                        if attempt == 0:
-                            # 微调坐标重试
-                            screen_x += 10
-                            screen_y += 5
-                            logger.info(f"调整重试坐标为: ({screen_x}, {screen_y})")
-                        import time
-                        time.sleep(0.2)  # 重试前短暂等待
+                        # 每次重试使用不同的偏移量
+                        retry_offset_x = random.randint(15, 30) * (-1 if attempt % 2 == 0 else 1)
+                        retry_offset_y = random.randint(5, 15)
+                        
+                        screen_x += retry_offset_x
+                        screen_y += retry_offset_y
+                        logger.info(f"调整重试坐标为: ({screen_x}, {screen_y}) + 下一次随机偏移")
+                        
+                        # 增加等待时间，让游戏有时间响应
+                        wait_time = 0.2 + random.random() * 0.3
+                        time.sleep(wait_time)
                 
                 if success:
                     logger.info(f"成功点击按钮: {button_name}")
-                    # 添加额外延迟让游戏有时间响应点击
-                    import time
-                    time.sleep(0.3)
+                    # 添加随机延迟让游戏有时间响应点击，模拟人类行为
+                    response_time = 0.3 + random.random() * 0.5
+                    logger.debug(f"等待游戏响应，延迟 {response_time:.2f} 秒")
+                    time.sleep(response_time)
                     return True
                 else:
-                    logger.error(f"点击按钮 '{button_name}' 失败")
+                    logger.error(f"所有尝试都失败，无法点击按钮: {button_name}")
+                    # 添加调试信息，帮助用户诊断问题
+                    logger.debug("点击失败可能原因:")
+                    logger.debug("1. 游戏窗口可能被遮挡或不在前台")
+                    logger.debug("2. 按钮坐标可能需要调整")
+                    logger.debug("3. 游戏可能有反作弊机制拦截了点击")
+                    logger.debug("4. 请检查游戏是否正常运行，窗口标题是否正确")
                     return False
+            else:
+                logger.error(f"未在配置中找到按钮 '{button_name}' 的位置信息")
+                return False
+        except Exception as e:
+            logger.error(f"处理点击按钮 '{button_name}' 时发生错误: {str(e)}")
+            return False
             
             # 如果没有BOTTOM_BUTTONS_POSITIONS配置，尝试使用BOTTOM_BUTTONS_CLICK_COORDS作为备选
-            elif hasattr(Config, 'BOTTOM_BUTTONS_CLICK_COORDS') and hasattr(Config, 'BOTTOM_BUTTONS_NAMES'):
+            if hasattr(Config, 'BOTTOM_BUTTONS_CLICK_COORDS') and hasattr(Config, 'BOTTOM_BUTTONS_NAMES'):
                 try:
                     button_index = Config.BOTTOM_BUTTONS_NAMES.index(button_name)
                     if 0 <= button_index < len(Config.BOTTOM_BUTTONS_CLICK_COORDS):

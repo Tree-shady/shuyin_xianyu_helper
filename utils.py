@@ -5,6 +5,7 @@ import time
 import difflib
 import windows
 import win32gui
+import win32con
 import easyocr
 import numpy as np
 import json
