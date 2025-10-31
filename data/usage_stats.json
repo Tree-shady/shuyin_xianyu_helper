@@ -1,0 +1,20 @@
+{
+  "total_runs": 67,
+  "features": {
+    "program_start": {
+      "count": 64,
+      "success": 64,
+      "failure": 0
+    },
+    "auto_tower": {
+      "count": 2,
+      "success": 1,
+      "failure": 1
+    },
+    "auto_pass": {
+      "count": 1,
+      "success": 1,
+      "failure": 0
+    }
+  }
+}

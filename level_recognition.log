@@ -1,0 +1,197 @@
+2025-10-30 23:46:07,269 - easyocr.easyocr - WARNING - Neither CUDA nor MPS are available - defaulting to CPU. Note: This module is much faster with a GPU.
+2025-10-30 23:46:08,860 - level_recognition - INFO - OCR引擎初始化成功
+2025-10-30 23:46:08,861 - level_recognition - INFO - 找到游戏窗口: 咸鱼之王
+2025-10-30 23:46:08,862 - level_recognition - INFO - 关卡识别区域（屏幕坐标）: (211, 171, 411, 251)
+2025-10-30 23:46:08,862 - level_recognition - INFO - 开始实时关卡识别（间隔2秒），按Ctrl+C退出...
+2025-10-30 23:46:09,192 - level_recognition - INFO - 识别到三位数关卡: 224 (置信度: 1.06)
+2025-10-30 23:46:11,439 - level_recognition - INFO - 识别到关卡数字: 21 (置信度: 0.85)
+2025-10-30 23:46:13,771 - level_recognition - INFO - 识别到关卡数字: 1942 (置信度: 0.99)
+2025-10-30 23:46:16,090 - level_recognition - INFO - 识别到三位数关卡: 812 (置信度: 0.13)
+2025-10-30 23:46:18,394 - level_recognition - INFO - 识别到关卡数字: 72807 (置信度: 0.97)
+2025-10-30 23:46:20,679 - level_recognition - INFO - 识别到三位数关卡: 551 (置信度: 0.77)
+2025-10-30 23:46:22,937 - level_recognition - INFO - 识别到关卡数字: 41090 (置信度: 1.00)
+2025-10-30 23:46:25,145 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:46:27,442 - level_recognition - INFO - 识别到关卡数字: 4506 (置信度: 0.98)
+2025-10-30 23:46:29,748 - level_recognition - INFO - 识别到关卡数字: 4031 (置信度: 0.73)
+2025-10-30 23:46:32,063 - level_recognition - INFO - 识别到关卡数字: 3931 (置信度: 0.72)
+2025-10-30 23:46:34,376 - level_recognition - INFO - 识别到关卡数字: 3719 (置信度: 0.99)
+2025-10-30 23:46:36,668 - level_recognition - INFO - 识别到关卡数字: 3667 (置信度: 0.96)
+2025-10-30 23:46:38,952 - level_recognition - INFO - 识别到三位数关卡: 164 (置信度: 1.09)
+2025-10-30 23:46:41,239 - level_recognition - INFO - 识别到关卡数字: 1196 (置信度: 0.99)
+2025-10-30 23:46:43,527 - level_recognition - INFO - 识别到关卡数字: 82848 (置信度: 1.00)
+2025-10-30 23:46:45,851 - level_recognition - INFO - 识别到关卡数字: 1528 (置信度: 0.65)
+2025-10-30 23:46:48,113 - level_recognition - INFO - 识别到关卡数字: 1207 (置信度: 0.88)
+2025-10-30 23:46:50,411 - level_recognition - INFO - 识别到关卡数字: 1002 (置信度: 0.94)
+2025-10-30 23:46:52,683 - level_recognition - INFO - 识别到关卡数字: 7390 (置信度: 1.00)
+2025-10-30 23:46:54,879 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:46:57,171 - level_recognition - INFO - 识别到三位数关卡: 226 (置信度: 0.34)
+2025-10-30 23:46:59,488 - level_recognition - INFO - 识别到关卡数字: 1549 (置信度: 0.99)
+2025-10-30 23:47:01,789 - level_recognition - INFO - 识别到关卡数字: 1372 (置信度: 0.96)
+2025-10-30 23:47:04,101 - level_recognition - INFO - 识别到关卡数字: 1232 (置信度: 0.98)
+2025-10-30 23:47:06,309 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:08,611 - level_recognition - INFO - 识别到三位数关卡: 226 (置信度: 0.34)
+2025-10-30 23:47:10,920 - level_recognition - INFO - 识别到三位数关卡: 155 (置信度: 0.89)
+2025-10-30 23:47:13,218 - level_recognition - INFO - 识别到关卡数字: 1421 (置信度: 0.92)
+2025-10-30 23:47:15,511 - level_recognition - INFO - 识别到关卡数字: 1176 (置信度: 0.99)
+2025-10-30 23:47:17,826 - level_recognition - INFO - 识别到三位数关卡: 025 (置信度: 0.17)
+2025-10-30 23:47:20,108 - level_recognition - INFO - 识别到关卡数字: 2983 (置信度: 0.98)
+2025-10-30 23:47:22,430 - level_recognition - INFO - 识别到关卡数字: 2556 (置信度: 0.91)
+2025-10-30 23:47:24,714 - level_recognition - INFO - 识别到关卡数字: 45 (置信度: 0.78)
+2025-10-30 23:47:26,974 - level_recognition - INFO - 识别到三位数关卡: 224 (置信度: 1.06)
+2025-10-30 23:47:29,172 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:31,396 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:33,597 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:35,800 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:38,005 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:40,210 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:42,401 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:44,633 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:46,832 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:49,033 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:51,245 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:53,446 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:55,651 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:47:57,844 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:00,052 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:02,251 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:04,452 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:06,655 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:08,857 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:11,055 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:13,270 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:15,476 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:17,679 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:19,884 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:22,077 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:24,283 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:26,471 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:28,662 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:31,098 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:33,480 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:35,742 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:37,982 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:40,225 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:42,465 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:44,717 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:46,942 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:49,160 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:51,382 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:53,624 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:55,847 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:48:58,065 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:00,293 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:02,518 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:04,741 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:06,961 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:09,167 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:11,372 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:13,573 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:15,801 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:18,014 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:20,212 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:22,415 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:24,621 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:26,823 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:29,023 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:31,217 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:33,432 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:35,632 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:37,828 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:40,026 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:42,233 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:44,447 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:46,648 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:48,860 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:51,068 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:53,274 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:55,480 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:57,682 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:49:59,893 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:02,104 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:04,304 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:06,510 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:08,725 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:10,921 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:13,130 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:15,353 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:17,549 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:19,743 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:21,945 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:24,171 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:26,396 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:28,602 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:30,825 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:33,044 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:35,289 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:37,501 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:39,719 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:41,940 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:44,179 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:46,421 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:48,630 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:50,840 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:53,046 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:55,247 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:57,462 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:50:59,658 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:01,859 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:04,074 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:06,276 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:08,471 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:10,688 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:12,896 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:15,129 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:17,338 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:19,549 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:21,746 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:23,955 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:26,160 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:28,364 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:30,577 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:32,785 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:34,985 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:37,202 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:39,427 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:41,644 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:43,821 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:46,018 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:48,225 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:50,425 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:52,630 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:54,834 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:57,044 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:51:59,251 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:01,456 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:03,661 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:05,871 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:08,064 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:10,273 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:12,478 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:14,708 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:16,917 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:19,110 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:21,310 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:23,490 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:25,697 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:27,908 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:30,100 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:32,299 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:34,512 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:36,714 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:38,917 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:41,122 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:43,321 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:45,534 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:47,734 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:49,930 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:52,129 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:54,330 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:56,540 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:52:58,765 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:53:00,966 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:53:03,178 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:53:05,396 - level_recognition - WARNING - 所有OCR方法均未识别到数字，原始文本: ''
+2025-10-30 23:53:07,695 - level_recognition - INFO - 识别到关卡数字: 1165 (置信度: 0.71)
+2025-10-30 23:53:09,984 - level_recognition - INFO - 识别到关卡数字: 8444 (置信度: 0.67)
+2025-10-30 23:53:12,290 - level_recognition - INFO - 识别到关卡数字: 66801 (置信度: 1.00)
+2025-10-30 23:53:14,593 - level_recognition - INFO - 识别到关卡数字: 47481 (置信度: 1.00)
