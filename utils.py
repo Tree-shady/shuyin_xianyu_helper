@@ -467,16 +467,40 @@ class GameHelper:
             y: 相对窗口的Y坐标
             delay: 点击后的延迟（秒）
             max_retries: 最大重试次数
+        
+        Returns:
+            bool: 点击是否成功
         """
-        return retry_operation(
-            windows.left_click_position,
-            max_retries=max_retries,
-            delay=0.5,
-            hwd=self.hwnd,
-            x_position=x,
-            y_position=y,
-            sleep_time=delay
-        )
+        # 自定义重试逻辑，支持基于返回值False的重试
+        attempt = 0
+        while attempt < max_retries:
+            try:
+                # 调用windows模块的left_click_position函数
+                success = windows.left_click_position(
+                    self.hwnd,
+                    x_position=x,
+                    y_position=y,
+                    sleep_time=delay
+                )
+                
+                if success:
+                    logger.debug(f"点击成功 (尝试 {attempt+1}/{max_retries})")
+                    return True
+                else:
+                    logger.warning(f"点击失败 (尝试 {attempt+1}/{max_retries})")
+                    attempt += 1
+                    if attempt < max_retries:
+                        logger.debug(f"等待 {0.5} 秒后重试")
+                        time.sleep(0.5)
+            except Exception as e:
+                logger.warning(f"点击操作抛出异常 (尝试 {attempt+1}/{max_retries}): {e}")
+                attempt += 1
+                if attempt < max_retries:
+                    logger.debug(f"等待 {0.5} 秒后重试")
+                    time.sleep(0.5)
+        
+        logger.error(f"所有 {max_retries} 次点击尝试都失败")
+        return False
 
     # 加载图像资源, 返回图像资源列表; 图像都是通过Sniff截图，保持图片画质稳定
     def load_res(self):

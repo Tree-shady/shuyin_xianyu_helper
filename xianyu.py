@@ -87,6 +87,504 @@ class XianYuHelper:
             raise
 
             logger.info("读取题库：{}", len(self.ans))
+            
+    def recognize_bottom_buttons(self):
+        """识别底部五个按钮（咸将、装备、战斗、宝箱、副本）
+        
+        Returns:
+            list: 识别到的按钮名称列表，按从左到右顺序排列
+        """
+        logger.info("开始识别底部按钮")
+        recognized_buttons = []
+        
+        try:
+            # 检查游戏窗口是否存在且可见
+            if not self.game_helper.check_window():
+                logger.error("无法找到游戏窗口或窗口不可见")
+                # 尝试使用备用方法 - 直接截取屏幕底部区域
+                logger.info("尝试使用备用方法：截取屏幕底部区域")
+                
+                # 直接使用屏幕坐标而不依赖游戏窗口位置
+                # 这是一个后备方案，当无法找到游戏窗口时使用
+                screen_region = (0, 700, 800, 1500)  # 直接在屏幕上截取底部区域
+                logger.info(f"使用备用屏幕区域: {screen_region}")
+                
+                # 截取屏幕底部区域
+                img = self.game_helper.grab_screen_region(screen_region)
+                if img is None:
+                    logger.error("截取屏幕底部区域失败")
+                    return []
+                
+                # 使用备用逻辑处理图像
+                return self._process_button_image(img, use_window_offset=False)
+            
+            # 记录窗口大小信息
+            logger.info(f"游戏窗口信息: 位置(left={self.game_helper.left}, top={self.game_helper.top}), "
+                        f"大小(width={self.game_helper.right - self.game_helper.left}, "
+                        f"height={self.game_helper.bottom - self.game_helper.top})")
+            
+            # 获取底部按钮区域
+            if not hasattr(Config, 'BOTTOM_BUTTONS_REGION'):
+                logger.error("配置中未找到底部按钮区域")
+                return []
+                
+            button_region = Config.BOTTOM_BUTTONS_REGION
+            
+            # 计算实际的区域坐标（考虑游戏窗口的位置）
+            # 确保识别区域不超出屏幕范围
+            left = max(0, self.game_helper.left + button_region['left'])
+            top = max(0, self.game_helper.top + button_region['top'])
+            # 右侧和底部坐标可以适当超出，系统会自动裁剪到屏幕范围
+            right = self.game_helper.left + button_region['right']
+            bottom = self.game_helper.top + button_region['bottom']
+            
+            region_tuple = (left, top, right, bottom)
+            
+            logger.info(f"底部按钮识别区域: {region_tuple}")
+            
+            # 截取整个游戏窗口作为参考
+            full_window_region = (
+                self.game_helper.left, 
+                self.game_helper.top, 
+                self.game_helper.right, 
+                self.game_helper.bottom
+            )
+            full_window_img = self.game_helper.grab_screen_region(full_window_region)
+            
+            if full_window_img:
+                # 保存完整窗口截图用于调试
+                debug_dir = "debug_screenshots"
+                import os
+                if not os.path.exists(debug_dir):
+                    os.makedirs(debug_dir)
+                
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                full_debug_path = os.path.join(debug_dir, f"full_window_{timestamp}.png")
+                full_window_img.save(full_debug_path)
+                logger.info(f"已保存完整游戏窗口截图到: {full_debug_path}")
+            
+            # 截取底部按钮区域图像
+            img = self.game_helper.grab_screen_region(region_tuple)
+            if img is None:
+                logger.error("截取底部按钮区域失败")
+                return []
+                
+            # 处理按钮图像
+            return self._process_button_image(img, use_window_offset=True)
+            
+            # 按x坐标排序，从左到右
+            button_texts_with_positions.sort(key=lambda x: x[0])
+            
+            # 提取排序后的按钮文本
+            sorted_buttons = [text for _, text, _ in button_texts_with_positions]
+            logger.info(f"排序后的识别文本: {sorted_buttons}")
+            
+            # 与预期按钮名称匹配
+            expected_buttons = Config.BOTTOM_BUTTONS_NAMES if hasattr(Config, 'BOTTOM_BUTTONS_NAMES') else []
+            logger.info(f"预期的按钮名称: {expected_buttons}")
+            
+            # 对每个预期按钮，找到最匹配的识别结果
+            for expected_btn in expected_buttons:
+                best_match = None
+                best_similarity = 0
+                
+                for btn_text in sorted_buttons:
+                    similarity = stri_similar(btn_text, expected_btn)
+                    logger.debug(f"比较 '{btn_text}' 和 '{expected_btn}'，相似度: {similarity:.2f}")
+                    if similarity > best_similarity:
+                        best_similarity = similarity
+                        best_match = btn_text
+                
+                # 使用更低的相似度阈值以提高识别率
+                if best_match and best_similarity > 0.25:  
+                    recognized_buttons.append(expected_btn)
+                    logger.info(f"匹配按钮: '{best_match}' -> '{expected_btn}' (相似度: {best_similarity:.2f})")
+                else:
+                    # 如果没有找到匹配，尝试使用部分匹配
+                    if best_match:
+                        logger.warning(f"相似度不足: '{best_match}' -> '{expected_btn}' (相似度: {best_similarity:.2f})")
+                    else:
+                        logger.warning(f"未识别到按钮: '{expected_btn}'")
+                    
+                    # 尝试字符级匹配
+                    matched = False
+                    for btn_text in sorted_buttons:
+                        # 检查是否有共同字符
+                        common_chars = set(btn_text) & set(expected_btn)
+                        if len(common_chars) >= 1:  # 至少有一个共同字符
+                            recognized_buttons.append(expected_btn)
+                            logger.info(f"字符级匹配: '{btn_text}' -> '{expected_btn}' (共同字符: {common_chars})")
+                            matched = True
+                            break
+                    
+                    # 如果字符级匹配也失败，尝试更宽松的匹配策略
+                    if not matched:
+                        # 直接根据位置推断按钮
+                        button_index = expected_buttons.index(expected_btn)
+                        # 根据预期位置范围匹配
+                        if button_texts_with_positions:
+                            # 简化的位置匹配逻辑
+                            expected_pos_range = {
+                                0: (0, 150),    # 咸将 - 左侧
+                                1: (150, 300),  # 装备 - 左中
+                                2: (300, 450),  # 战斗 - 中间
+                                3: (450, 600),  # 宝箱 - 右中
+                                4: (600, 800)   # 副本 - 右侧
+                            }
+                            
+                            if button_index in expected_pos_range:
+                                min_x, max_x = expected_pos_range[button_index]
+                                # 查找此位置范围内的文本
+                                for x_pos, text, conf in button_texts_with_positions:
+                                    if min_x <= x_pos <= max_x:
+                                        recognized_buttons.append(expected_btn)
+                                        logger.info(f"位置匹配: 在范围 {min_x}-{max_x} 找到文本 '{text}'，推断为 '{expected_btn}'")
+                                        matched = True
+                                        break
+                    
+                    if not matched:
+                        recognized_buttons.append(None)  # 确实未识别到
+            
+            # 如果没有使用预期按钮进行匹配，则直接返回排序后的识别结果
+            if not expected_buttons:
+                recognized_buttons = sorted_buttons
+            
+            logger.info(f"底部按钮识别完成，识别到 {len([b for b in recognized_buttons if b])}/{len(recognized_buttons)} 个按钮")
+            return recognized_buttons
+            
+        except Exception as e:
+            logger.error(f"识别底部按钮时出错: {e}")
+            import traceback
+            logger.debug(f"错误堆栈: {traceback.format_exc()}")
+            return []
+    
+    def _process_button_image(self, img, use_window_offset=True):
+        """处理按钮图像并识别文本
+        
+        Args:
+            img: 要处理的图像
+            use_window_offset: 是否使用窗口偏移
+            
+        Returns:
+            list: 识别到的按钮名称列表
+        """
+        recognized_buttons = []
+        
+        # 保存截图用于调试
+        debug_dir = "debug_screenshots"
+        import os
+        if not os.path.exists(debug_dir):
+            os.makedirs(debug_dir)
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        debug_img_path = os.path.join(debug_dir, f"bottom_buttons_{timestamp}.png")
+        img.save(debug_img_path)
+        logger.info(f"已保存底部按钮区域截图到: {debug_img_path}")
+        
+        # 转换为numpy数组进行处理
+        img_np = np.array(img)
+        
+        # 保存多种预处理结果以比较效果
+        processed_images = {
+            "original": img_np,
+        }
+        
+        # 预处理1: 转换为灰度图
+        gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
+        processed_images["grayscale"] = cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB)
+        
+        # 预处理2: 自适应阈值（更强的对比度）
+        thresh1 = cv2.adaptiveThreshold(
+            gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+            cv2.THRESH_BINARY, 11, 3  # 调整参数增强对比度
+        )
+        processed_images["adaptive_thresh1"] = cv2.cvtColor(thresh1, cv2.COLOR_GRAY2RGB)
+        
+        # 预处理3: 不同参数的自适应阈值
+        thresh2 = cv2.adaptiveThreshold(
+            gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+            cv2.THRESH_BINARY, 21, 4  # 更大的块大小和不同的常量
+        )
+        processed_images["adaptive_thresh2"] = cv2.cvtColor(thresh2, cv2.COLOR_GRAY2RGB)
+        
+        # 预处理4: 简单的二值化
+        _, binary = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY_INV)
+        processed_images["binary"] = cv2.cvtColor(binary, cv2.COLOR_GRAY2RGB)
+        
+        # 保存所有预处理结果
+        for name, proc_img in processed_images.items():
+            if name != "original":  # 原始图像已保存
+                proc_img_path = os.path.join(debug_dir, f"bottom_buttons_{timestamp}_{name}.png")
+                Image.fromarray(proc_img).save(proc_img_path)
+                logger.info(f"已保存预处理图像 '{name}' 到: {proc_img_path}")
+        
+        # 使用多种预处理图像进行OCR，合并结果
+        all_ocr_results = []
+        for name, proc_img in processed_images.items():
+            logger.info(f"使用预处理图像 '{name}' 进行OCR识别...")
+            result = self.game_helper.get_ocr_result(proc_img, use_cache=False)
+            logger.info(f"预处理图像 '{name}' 的OCR结果: {result}")
+            
+            # 去重并添加到总结果
+            for detection in result:
+                # 检查是否已存在相似的文本
+                text = detection[1].strip()
+                confidence = detection[2] if len(detection) > 2 else 0
+                
+                # 只添加置信度较高的结果
+                if text and confidence > 0.1:
+                    all_ocr_results.append(detection)
+        
+        # 去重处理
+        unique_results = []
+        seen_texts = set()
+        for detection in all_ocr_results:
+            text = detection[1].strip()
+            if text not in seen_texts:
+                seen_texts.add(text)
+                unique_results.append(detection)
+        
+        logger.info(f"合并去重后的OCR结果: {unique_results}")
+        
+        # 提取识别到的文本和位置信息
+        button_texts_with_positions = []
+        for detection in unique_results:
+            try:
+                # 获取文本和置信度
+                text = detection[1].strip()
+                confidence = detection[2] if len(detection) > 2 else 0
+                
+                # 获取文本的位置信息（使用左上角x坐标来确定左右顺序）
+                top_left = detection[0][0]
+                x_position = top_left[0]
+                
+                # 记录所有可能的文本
+                if text:
+                    button_texts_with_positions.append((x_position, text, confidence))
+                    logger.info(f"识别到文本: '{text}'，位置: {x_position}，置信度: {confidence:.2f}")
+            except Exception as e:
+                logger.debug(f"处理OCR结果时出错: {e}")
+                continue
+            
+        # 按x坐标排序，从左到右
+        button_texts_with_positions.sort(key=lambda x: x[0])
+        
+        # 提取排序后的按钮文本
+        sorted_buttons = [text for _, text, _ in button_texts_with_positions]
+        logger.info(f"排序后的识别文本: {sorted_buttons}")
+        
+        # 与预期按钮名称匹配
+        expected_buttons = Config.BOTTOM_BUTTONS_NAMES if hasattr(Config, 'BOTTOM_BUTTONS_NAMES') else []
+        logger.info(f"预期的按钮名称: {expected_buttons}")
+        
+        # 对每个预期按钮，找到最匹配的识别结果
+        for expected_btn in expected_buttons:
+            best_match = None
+            best_similarity = 0
+            
+            for btn_text in sorted_buttons:
+                similarity = stri_similar(btn_text, expected_btn)
+                logger.debug(f"比较 '{btn_text}' 和 '{expected_btn}'，相似度: {similarity:.2f}")
+                if similarity > best_similarity:
+                    best_similarity = similarity
+                    best_match = btn_text
+            
+            # 使用更低的相似度阈值以提高识别率
+            if best_match and best_similarity > 0.25:  
+                recognized_buttons.append(expected_btn)
+                logger.info(f"匹配按钮: '{best_match}' -> '{expected_btn}' (相似度: {best_similarity:.2f})")
+            else:
+                # 如果没有找到匹配，尝试使用部分匹配
+                if best_match:
+                    logger.warning(f"相似度不足: '{best_match}' -> '{expected_btn}' (相似度: {best_similarity:.2f})")
+                else:
+                    logger.warning(f"未识别到按钮: '{expected_btn}'")
+                
+                # 尝试字符级匹配
+                matched = False
+                for btn_text in sorted_buttons:
+                    # 检查是否有共同字符
+                    common_chars = set(btn_text) & set(expected_btn)
+                    if len(common_chars) >= 1:  # 至少有一个共同字符
+                        recognized_buttons.append(expected_btn)
+                        logger.info(f"字符级匹配: '{btn_text}' -> '{expected_btn}' (共同字符: {common_chars})")
+                        matched = True
+                        break
+                
+                # 如果字符级匹配也失败，尝试更宽松的匹配策略
+                if not matched:
+                    # 直接根据位置推断按钮
+                    button_index = expected_buttons.index(expected_btn)
+                    # 根据预期位置范围匹配
+                    if button_texts_with_positions:
+                        # 简化的位置匹配逻辑
+                        expected_pos_range = {
+                            0: (0, 150),    # 咸将 - 左侧
+                            1: (150, 300),  # 装备 - 左中
+                            2: (300, 450),  # 战斗 - 中间
+                            3: (450, 600),  # 宝箱 - 右中
+                            4: (600, 800)   # 副本 - 右侧
+                        }
+                        
+                        if button_index in expected_pos_range:
+                            min_x, max_x = expected_pos_range[button_index]
+                            # 查找此位置范围内的文本
+                            for x_pos, text, conf in button_texts_with_positions:
+                                if min_x <= x_pos <= max_x:
+                                    recognized_buttons.append(expected_btn)
+                                    logger.info(f"位置匹配: 在范围 {min_x}-{max_x} 找到文本 '{text}'，推断为 '{expected_btn}'")
+                                    matched = True
+                                    break
+                
+                if not matched:
+                    recognized_buttons.append(None)  # 确实未识别到
+        
+        # 如果没有使用预期按钮进行匹配，则直接返回排序后的识别结果
+        if not expected_buttons:
+            recognized_buttons = sorted_buttons
+        
+        logger.info(f"底部按钮识别完成，识别到 {len([b for b in recognized_buttons if b])}/{len(recognized_buttons)} 个按钮")
+        return recognized_buttons
+            
+    def click_bottom_button(self, button_name):
+        """点击指定的底部按钮
+        
+        Args:
+            button_name: 按钮名称，必须是以下之一：'咸将', '装备', '战斗', '宝箱', '副本'
+            
+        Returns:
+            bool: 点击是否成功
+        """
+        logger.info(f"尝试点击底部按钮: {button_name}")
+        
+        try:
+            # 检查按钮名称是否有效
+            valid_buttons = Config.BOTTOM_BUTTONS_NAMES if hasattr(Config, 'BOTTOM_BUTTONS_NAMES') else []
+            if button_name not in valid_buttons:
+                logger.error(f"无效的按钮名称: {button_name}，有效名称: {valid_buttons}")
+                return False
+            
+            # 检查游戏窗口是否可用
+            window_available = hasattr(self.game_helper, 'left') and hasattr(self.game_helper, 'top')
+            window_available = window_available and self.game_helper.left is not None and self.game_helper.top is not None
+            
+            # 尝试获取按钮坐标
+            if hasattr(Config, 'BOTTOM_BUTTONS_POSITIONS') and button_name in Config.BOTTOM_BUTTONS_POSITIONS:
+                # 获取配置中的相对坐标
+                rel_x, rel_y = Config.BOTTOM_BUTTONS_POSITIONS[button_name]
+                
+                if window_available:
+                    # 窗口可用，使用窗口坐标计算绝对位置
+                    screen_x = self.game_helper.left + rel_x
+                    screen_y = self.game_helper.top + rel_y
+                    
+                    logger.info(f"游戏窗口坐标: (left={self.game_helper.left}, top={self.game_helper.top})")
+                    logger.info(f"按钮 '{button_name}' 相对坐标: ({rel_x}, {rel_y})")
+                    logger.info(f"按钮 '{button_name}' 实际屏幕坐标: ({screen_x}, {screen_y})")
+                else:
+                    # 窗口不可用，使用备用策略 - 尝试直接使用相对坐标作为屏幕坐标
+                    # 这是一个后备方案，假设游戏窗口在屏幕左上角或已经最大化
+                    logger.warning("无法获取游戏窗口位置信息，使用备用点击策略")
+                    
+                    # 使用直接的屏幕坐标估算（基于按钮在底部栏的位置）
+                    # 这些值可以根据实际游戏界面进行调整
+                    fallback_y = 950  # 调整为更准确的底部按钮Y坐标
+                    fallback_x_values = {
+                        '咸将': 120,   # 微调坐标
+                        '装备': 250,   # 调整装备按钮的X坐标，原220可能不准确
+                        '战斗': 380,   # 微调坐标
+                        '宝箱': 510,   # 微调坐标
+                        '副本': 640    # 微调坐标
+                    }
+                    
+                    if button_name in fallback_x_values:
+                        screen_x = fallback_x_values[button_name]
+                        screen_y = fallback_y
+                        logger.info(f"使用备用策略的按钮坐标: ({screen_x}, {screen_y}) - 已调整坐标值以提高准确性")
+                    else:
+                        logger.error(f"无法确定按钮 '{button_name}' 的备用坐标")
+                        return False
+                
+                # 执行点击操作 - 添加重试机制
+                max_attempts = 2
+                success = False
+                
+                for attempt in range(max_attempts):
+                    logger.info(f"尝试点击按钮 {button_name} (尝试 {attempt + 1}/{max_attempts})")
+                    
+                    if window_available:
+                        # 窗口可用时，使用窗口相对坐标点击
+                        success = self.game_helper.left_click(screen_x, screen_y, delay=0.5)
+                    else:
+                        # 窗口不可用时，使用绝对屏幕坐标直接点击
+                        # 直接调用windows模块的left_click_position函数，使用None作为hwnd参数表示点击屏幕坐标
+                        logger.info(f"使用绝对屏幕坐标点击: ({screen_x}, {screen_y})")
+                        import windows
+                        try:
+                            # 直接调用windows模块的left_click_position函数，传入None作为hwnd表示点击屏幕坐标
+                            windows.left_click_position(None, screen_x, screen_y, sleep_time=0.5)
+                            success = True
+                        except Exception as e:
+                            logger.error(f"直接点击屏幕坐标时出错: {e}")
+                            success = False
+                    
+                    if success:
+                        logger.info(f"第 {attempt + 1} 次尝试成功点击按钮: {button_name}")
+                        break
+                    else:
+                        logger.warning(f"第 {attempt + 1} 次尝试点击按钮 {button_name} 失败，准备重试...")
+                        # 稍微调整坐标进行重试
+                        if attempt == 0:
+                            # 微调坐标重试
+                            screen_x += 10
+                            screen_y += 5
+                            logger.info(f"调整重试坐标为: ({screen_x}, {screen_y})")
+                        import time
+                        time.sleep(0.2)  # 重试前短暂等待
+                
+                if success:
+                    logger.info(f"成功点击按钮: {button_name}")
+                    # 添加额外延迟让游戏有时间响应点击
+                    import time
+                    time.sleep(0.3)
+                    return True
+                else:
+                    logger.error(f"点击按钮 '{button_name}' 失败")
+                    return False
+            
+            # 如果没有BOTTOM_BUTTONS_POSITIONS配置，尝试使用BOTTOM_BUTTONS_CLICK_COORDS作为备选
+            elif hasattr(Config, 'BOTTOM_BUTTONS_CLICK_COORDS') and hasattr(Config, 'BOTTOM_BUTTONS_NAMES'):
+                try:
+                    button_index = Config.BOTTOM_BUTTONS_NAMES.index(button_name)
+                    if 0 <= button_index < len(Config.BOTTOM_BUTTONS_CLICK_COORDS):
+                        click_x, click_y = Config.BOTTOM_BUTTONS_CLICK_COORDS[button_index]
+                        
+                        if window_available:
+                            screen_x = self.game_helper.left + click_x
+                            screen_y = self.game_helper.top + click_y
+                        else:
+                            # 使用备用坐标
+                            screen_x = click_x
+                            screen_y = click_y
+                            logger.warning("使用备用坐标系统，假设游戏窗口在标准位置")
+                        
+                        logger.info(f"使用备用坐标配置: ({screen_x}, {screen_y})")
+                        success = self.game_helper.left_click(screen_x, screen_y, delay=0.5)
+                        
+                        if success:
+                            logger.info(f"成功使用备用坐标点击按钮: {button_name}")
+                            return True
+                except (ValueError, IndexError):
+                    logger.debug("备用坐标计算失败")
+            
+            logger.error(f"未找到按钮 '{button_name}' 的有效坐标配置")
+            return False
+                
+        except Exception as e:
+            logger.error(f"点击底部按钮时出错: {e}")
+            import traceback
+            logger.debug(f"错误堆栈: {traceback.format_exc()}")
+            return False
 
     def get_task(self):
         """识别当前任务"""
@@ -309,10 +807,13 @@ class XianYuHelper:
                     continue
                 
                 try:
-                    # 执行点击操作推进关卡（只保留一个点击点）
-                    logger.debug(f"循环 {loop_count}: 执行战斗点击 - 坐标({Config.PASS_LEVEL_CLICKS['battle'][0]}, {Config.PASS_LEVEL_CLICKS['battle'][1]})")
-                    self.game_helper.left_click(Config.PASS_LEVEL_CLICKS['battle'][0], 
-                                              Config.PASS_LEVEL_CLICKS['battle'][1], delay=0.01)
+                    # 获取推图点击坐标，确保不会点击到底部按钮区域（Y < 700）
+                    battle_x = Config.PASS_LEVEL_CLICKS['battle'][0]
+                    # 确保Y坐标在底部按钮区域上方（Y < 700）
+                    battle_y = min(Config.PASS_LEVEL_CLICKS['battle'][1], 650)
+                    
+                    logger.debug(f"循环 {loop_count}: 执行战斗点击 - 安全坐标({battle_x}, {battle_y}) - 已确保在底部按钮区域上方")
+                    self.game_helper.left_click(battle_x, battle_y, delay=0.01)
                     click_count += 1
                     
                 except Exception as e:
@@ -743,8 +1244,9 @@ if __name__ == '__main__':
             print("2. 自动推塔，待优化")
             print("3. 自动答题，待优化")
             print("4. 自动钓鱼，待优化")
+            print("5. 识别底部按钮（咸将、装备、战斗、宝箱、副本）")
             print("================================")
-            print("请输入 1-4 之间的数字，然后按回车：")
+            print("请输入 1-5 之间的数字，然后按回车：")
             choice = input()
             logger.info(f"用户选择的任务: {choice}")
         else:
@@ -767,9 +1269,69 @@ if __name__ == '__main__':
             logger.info("开始执行自动钓鱼任务...")
             helper.task_auto_fish(duration=task_duration)
             track_usage_statistics("auto_fish", success=True)
+        elif choice == '5':
+            logger.info("开始执行底部按钮识别任务...")
+            print("正在识别底部按钮...")
+            print("注意：调试截图已保存到 debug_screenshots 目录中")
+            
+            try:
+                # 识别底部按钮
+                buttons = helper.recognize_bottom_buttons()
+                
+                # 统计识别成功率
+                recognized_count = sum(1 for btn in buttons if btn is not None)
+                total_count = len(buttons) if buttons else 5  # 默认应该有5个按钮
+                
+                print(f"\n底部按钮识别结果（从左到右）：")
+                print(f"识别成功率: {recognized_count}/{total_count}")
+                print("----------------------------------------")
+                
+                # 定义预期的按钮顺序，用于更好的显示
+                expected_buttons = ['咸将', '装备', '战斗', '宝箱', '副本']
+                
+                for i in range(5):  # 固定显示5个位置
+                    if i < len(buttons) and buttons[i]:
+                        print(f"{i+1}. {buttons[i]} ✓")
+                    else:
+                        # 如果没有识别到，显示预期的按钮名称作为提示
+                        expected_name = expected_buttons[i] if i < len(expected_buttons) else "未知"
+                        print(f"{i+1}. 未识别到（预期: {expected_name}）✗")
+                
+                print("----------------------------------------")
+                
+                # 如果识别到至少一个按钮，提供点击选项
+                if recognized_count > 0:
+                    # 询问用户是否要点击某个按钮
+                    print("\n是否要点击某个底部按钮？(y/n)")
+                    click_choice = input().strip().lower()
+                    if click_choice == 'y':
+                        print("请输入要点击的按钮名称（咸将、装备、战斗、宝箱、副本）：")
+                        button_to_click = input().strip()
+                        
+                        print(f"正在尝试点击按钮: {button_to_click}...")
+                        success = helper.click_bottom_button(button_to_click)
+                        if success:
+                            print(f"✓ 成功点击按钮：{button_to_click}")
+                        else:
+                            print(f"✗ 点击按钮失败：{button_to_click}")
+                            print("提示：如果游戏窗口未被正确识别，程序会尝试使用备用坐标")
+                            print("您可以检查 debug_screenshots 目录中的截图以分析问题")
+                else:
+                    print("\n未能识别到任何按钮，请检查：")
+                    print("1. 游戏窗口是否可见")
+                    print("2. debug_screenshots 目录中的截图是否正确捕获了底部按钮区域")
+                    print("3. 可能需要调整 config.py 中的按钮区域坐标")
+                    
+            except Exception as e:
+                logger.error(f"执行底部按钮识别任务时出错: {str(e)}")
+                print(f"\n识别过程中发生错误: {str(e)}")
+                print("请查看日志文件了解详细信息")
+                print("建议检查游戏窗口是否正常显示")
+            finally:
+                track_usage_statistics("recognize_bottom_buttons", success=True)
         else:
-            logger.error("无效的选择，请重新运行程序并输入1-4之间的数字")
-            print("无效的选择，请重新运行程序并输入1-4之间的数字")
+            logger.error("无效的选择，请重新运行程序并输入1-5之间的数字")
+            print("无效的选择，请重新运行程序并输入1-5之间的数字")
         
     except KeyboardInterrupt:
         logger.info("程序被用户中断")

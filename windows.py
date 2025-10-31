@@ -32,13 +32,38 @@ def right_click_position(hwd, x_position, y_position, sleep_time):
 
 
 def left_click_position(hwd, x_position, y_position, sleep_time):
-    """鼠标左点击"""
-    # 将两个16位的值连接成一个32位的地址坐标
-    long_position = win32api.MAKELONG(x_position, y_position)
-    # 点击左键
-    win32api.SendMessage(hwd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, long_position)
-    win32api.SendMessage(hwd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, long_position)
-    time.sleep(sleep_time)
+    """鼠标左点击
+    
+    Args:
+        hwd: 窗口句柄，如果为None则使用绝对屏幕坐标
+        x_position: X坐标
+        y_position: Y坐标
+        sleep_time: 点击后等待时间
+    """
+    try:
+        if hwd is not None:
+            # 窗口句柄存在时，使用相对窗口坐标
+            # 将两个16位的值连接成一个32位的地址坐标
+            long_position = win32api.MAKELONG(x_position, y_position)
+            # 点击左键
+            win32api.SendMessage(hwd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, long_position)
+            win32api.SendMessage(hwd, win32con.WM_LBUTTONUP, win32con.MK_LBUTTON, long_position)
+        else:
+            # 窗口句柄为None时，使用绝对屏幕坐标
+            import win32con
+            # 移动鼠标到指定位置
+            win32api.SetCursorPos((x_position, y_position))
+            # 模拟鼠标点击
+            win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0)
+            win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0, 0, 0)
+        
+        time.sleep(sleep_time)
+        return True
+    except Exception as e:
+        # 记录错误但不抛出异常
+        import logging
+        logging.error(f"执行点击操作时出错: {e}")
+        return False
 
 
 def get_text_from_clipboard():
