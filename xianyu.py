@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import sys
 import time
@@ -11,6 +12,7 @@ import pyautogui
 import cv2
 import numpy as np
 import argparse
+from datetime import datetime
 from datetime import datetime
 from loguru import logger
 from PIL import ImageGrab, Image
@@ -88,8 +90,6 @@ class XianYuHelper:
         except Exception as e:
             logger.error(f"读取题库时出错: {e}")
             raise
-
-            logger.info("读取题库：{}", len(self.ans))
             
     def recognize_bottom_buttons(self):
         """识别底部五个按钮（咸将、装备、战斗、宝箱、副本）
@@ -666,6 +666,9 @@ class XianYuHelper:
             duration: 任务持续时间（秒），None表示无限时间
         """
         logger.info("开始自动答题任务")
+        logger.info(f"题目区域配置: 左={Config.QUESTION_REGION_LEFT}, 上={Config.QUESTION_REGION_TOP}, 宽={Config.QUESTION_REGION_WIDTH}, 高={Config.QUESTION_REGION_HEIGHT}")
+        logger.info(f"相似度阈值设置: {self.min_similarity}")
+        logger.info(f"答案按钮坐标 - 对: {Config.ANSWER_POSITIONS[0]}, 错: {Config.ANSWER_POSITIONS[1]}")
         question_str_old = ""
         
         # 设置任务开始时间
@@ -687,6 +690,9 @@ class XianYuHelper:
                     continue
                     
                 try:
+                    # 记录窗口位置信息
+                    logger.debug(f"游戏窗口位置: 左={self.game_helper.left}, 上={self.game_helper.top}")
+                    
                     # 题目区域
                     question_region = (
                         self.game_helper.left + Config.QUESTION_REGION_LEFT,
@@ -694,65 +700,304 @@ class XianYuHelper:
                         self.game_helper.left + Config.QUESTION_REGION_LEFT + Config.QUESTION_REGION_WIDTH,
                         self.game_helper.top + Config.QUESTION_REGION_TOP + Config.QUESTION_REGION_HEIGHT
                     )
+                    logger.debug(f"实际题目截图区域: {question_region}")
                     
                     # 获取原始图像
                     img = self.game_helper.grab_screen_region(question_region)
+                    logger.debug(f"成功截取题目区域图像，尺寸: {img.size if img else 'None'}")
                     
-                    # 直接使用OpenCV批量处理，避免PIL和numpy之间的多次转换
+                    # 如果图像为空，跳过当前循环
+                    if img is None:
+                        logger.warning("无法获取题目区域图像，跳过当前循环")
+                        continue
+                    
                     # 转换为numpy数组
                     img_np = np.array(img)
                     
-                    # 创建掩码进行批量颜色处理
-                    mask = np.zeros(img_np.shape[:2], dtype=np.uint8)
-                    # 从配置中获取颜色阈值
-                    if isinstance(Config.COLOR_THRESHOLDS, dict):
-                        # 如果是字典格式（从config.py中读取）
-                        # 处理黑色文本
-                        lower_black = np.array(Config.COLOR_THRESHOLDS['lower_black'])
-                        upper_black = np.array(Config.COLOR_THRESHOLDS['upper_black'])
-                        black_mask = cv2.inRange(cv2.cvtColor(img_np, cv2.COLOR_RGB2HSV), lower_black, upper_black)
-                        
-                        # 处理白色文本（在深色背景上）
-                        lower_white = np.array(Config.COLOR_THRESHOLDS['lower_white'])
-                        upper_white = np.array(Config.COLOR_THRESHOLDS['upper_white'])
-                        white_mask = cv2.inRange(cv2.cvtColor(img_np, cv2.COLOR_RGB2HSV), lower_white, upper_white)
-                        
-                        # 合并掩码
-                        mask = cv2.bitwise_or(black_mask, white_mask)
-                    else:
-                        # 兼容旧格式的颜色阈值
-                        if self.color_thresholds is None:
-                            # 默认颜色阈值
-                            color_thresholds = [[48, 48, 48, 32], [82, 31, 26, 40]]
-                        else:
-                            color_thresholds = self.color_thresholds
-                        
-                        # 批量处理每个颜色阈值
-                        for color in color_thresholds:
-                            lower = np.array([color[0]-color[3], color[1]-color[3], color[2]-color[3]])
-                            upper = np.array([color[0]+color[3], color[1]+color[3], color[2]+color[3]])
-                            color_mask = cv2.inRange(img_np, lower, upper)
-                            mask = cv2.bitwise_or(mask, color_mask)
+                    # 转换为灰度图
+                    gray = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
                     
-                    # 批量二值化处理
-                    processed_img = np.zeros_like(img_np)
-                    processed_img[mask > 0] = [0, 0, 0]  # 黑色（文本）
-                    processed_img[mask == 0] = [255, 255, 255]  # 白色（背景）
+                    # 保存原始截图用于调试
+                    # 创建调试目录
+                    debug_dir = os.path.join(os.getcwd(), 'debug_question')
+                    os.makedirs(debug_dir, exist_ok=True)
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')
                     
-                    # 应用额外的图像增强（可选）
-                    # 高斯模糊降噪
-                    processed_img = cv2.GaussianBlur(processed_img, (1, 1), 0)
+                    # 保存完整窗口截图用于调试
+                    full_window_img = pyautogui.screenshot()
+                    full_window_np = np.array(full_window_img)
+                    cv2.imwrite(os.path.join(debug_dir, f'full_window_{timestamp}.png'), cv2.cvtColor(full_window_np, cv2.COLOR_RGB2BGR))
+                    logger.debug(f"已保存完整窗口截图: full_window_{timestamp}.png")
                     
-                    # OCR识别（带缓存）
-                    result = self.game_helper.get_ocr_result(processed_img)
+                    # 保存原始RGB图像
+                    cv2.imwrite(os.path.join(debug_dir, f'original_{timestamp}.png'), cv2.cvtColor(img_np, cv2.COLOR_RGB2BGR))
                     
-                    # 拼接识别结果
+                    # 尝试多种预处理方法，从简单到复杂
+                    logger.debug("使用多种预处理方法")
+                    
+                    # 先尝试直接使用原始图像进行OCR
+                    processed_img = img_np.copy()
+                    
+                    # 转换为灰度图
+                    gray_simple = cv2.cvtColor(img_np, cv2.COLOR_RGB2GRAY)
+                    cv2.imwrite(os.path.join(debug_dir, f'gray_{timestamp}.png'), gray_simple)
+                    
+                    # 增加对比度的预处理方法
+                    # 1. 应用对比度增强
+                    alpha = 1.5  # 对比度增益
+                    beta = 30    # 亮度增益
+                    contrast_img = cv2.convertScaleAbs(img_np, alpha=alpha, beta=beta)
+                    cv2.imwrite(os.path.join(debug_dir, f'contrast_{timestamp}.png'), cv2.cvtColor(contrast_img, cv2.COLOR_RGB2BGR))
+                    
+                    # 2. 尝试不同的二值化方法
+                    # 全局阈值
+                    _, binary1 = cv2.threshold(gray_simple, 100, 255, cv2.THRESH_BINARY_INV)
+                    cv2.imwrite(os.path.join(debug_dir, f'binary_global_{timestamp}.png'), binary1)
+                    
+                    # Otsu阈值
+                    _, binary2 = cv2.threshold(gray_simple, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+                    cv2.imwrite(os.path.join(debug_dir, f'binary_otsu_{timestamp}.png'), binary2)
+                    
+                    # 自适应阈值
+                    binary3 = cv2.adaptiveThreshold(gray_simple, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                                   cv2.THRESH_BINARY_INV, 11, 2)
+                    cv2.imwrite(os.path.join(debug_dir, f'binary_adaptive_{timestamp}.png'), binary3)
+                    
+                    # 确保图像是3通道以兼容OCR
+                    if len(processed_img.shape) == 2 or processed_img.shape[2] == 1:
+                        # 如果是灰度图，转换为3通道
+                        processed_img = cv2.cvtColor(processed_img, cv2.COLOR_GRAY2BGR)
+                    logger.debug(f"处理后图像形状: {processed_img.shape}")
+                    
                     question_str = ""
-                    for item in result:
-                        question_str += item[1]
                     
-                    # 去除空格
-                    question_str = question_str.replace(" ", "")
+                    try:
+                        # 增加额外的图像预处理步骤 - 去噪和锐化
+                        # 高斯模糊去噪
+                        blur_img = cv2.GaussianBlur(img_np, (5, 5), 0)
+                        cv2.imwrite(os.path.join(debug_dir, f'blur_{timestamp}.png'), cv2.cvtColor(blur_img, cv2.COLOR_RGB2BGR))
+                        
+                        # 锐化处理
+                        kernel = np.array([[-1,-1,-1], [-1,9,-1], [-1,-1,-1]])
+                        sharpened_img = cv2.filter2D(blur_img, -1, kernel)
+                        cv2.imwrite(os.path.join(debug_dir, f'sharpened_{timestamp}.png'), cv2.cvtColor(sharpened_img, cv2.COLOR_RGB2BGR))
+                    
+                        # 尝试1: 使用原始图像直接识别
+                        logger.debug("尝试1: 使用原始图像直接OCR识别")
+                        reader = easyocr.Reader(['ch_sim', 'en'], gpu=False)  # 同时使用中英文
+                        
+                        # 尝试更好的预处理方法：自适应阈值 + 形态学操作
+                        # 使用自适应阈值处理
+                        thresh = cv2.adaptiveThreshold(
+                            gray_simple, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, 
+                            cv2.THRESH_BINARY_INV, 11, 2
+                        )
+                        
+                        # 应用形态学操作：闭合（先膨胀后腐蚀）来连接文本
+                        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+                        closed = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+                        cv2.imwrite(os.path.join(debug_dir, f'morph_{timestamp}.png'), closed)
+                        
+                        # 将处理后的图像转换为3通道用于OCR
+                        morph_3channel = cv2.cvtColor(closed, cv2.COLOR_GRAY2BGR)
+                        
+                        # 尝试使用形态学处理后的图像进行OCR
+                        result1 = reader.readtext(
+                            morph_3channel, 
+                            detail=1, 
+                            paragraph=False,  # 不使用段落模式，更精确
+                            min_size=3,  # 较小的最小文本尺寸，捕获更多文本
+                            text_threshold=0.5,  # 适中的文本检测阈值
+                            low_text=0.3,  # 适中的低文本阈值
+                            batch_size=1,  # 小批量处理，提高精确度
+                            contrast_ths=0.1,  # 适中的对比度阈值
+                            height_ths=0.1  # 文本行高度容差
+                        )
+                        logger.debug(f"尝试1 OCR结果: {result1}")
+                        
+                        # 提取结果，改进拼接逻辑
+                        recognized_texts = []
+                        for item in result1:
+                            if len(item) >= 2:
+                                text = item[1]
+                                # 过滤无效文本，排除纯数字或纯符号文本
+                                if text and len(text.strip()) > 0:
+                                    # 尝试过滤掉游戏状态信息（如HP、等级等）
+                                    if not re.match(r'^\d+[/]\d+\s*$', text) and not ('HP' in text or 'hp' in text or '万' in text):
+                                        recognized_texts.append(text)
+                                        logger.debug(f"尝试1识别文本: '{text}'")
+                                    else:
+                                        logger.debug(f"尝试1过滤掉状态文本: '{text}'")
+                        
+                        # 使用空格连接不同识别结果，避免文本粘连
+                        question_str = " ".join(recognized_texts)
+                        
+                        # 如果没有识别到有效问题文本，不过滤数字和HP信息
+                        if not question_str.strip():
+                            recognized_texts = []
+                            for item in result1:
+                                if len(item) >= 2:
+                                    text = item[1]
+                                    if text and len(text.strip()) > 0:
+                                        recognized_texts.append(text)
+                                        logger.debug(f"尝试1(不过滤)识别文本: '{text}'")
+                            question_str = " ".join(recognized_texts)
+                        
+                        # 尝试2: 使用增强对比度的图像
+                        if not question_str or len(question_str) < 4:
+                            logger.debug("尝试2: 使用增强对比度的图像")
+                            result2 = reader.readtext(
+                                contrast_img,
+                                detail=1,
+                                paragraph=False,
+                                min_size=3,
+                                text_threshold=0.5
+                            )
+                            logger.debug(f"尝试2 OCR结果: {result2}")
+                            
+                            for item in result2:
+                                if len(item) >= 2:
+                                    text = item[1]
+                                    if text and len(text.strip()) > 0 and text not in recognized_texts:
+                                        # 尝试过滤掉游戏状态信息
+                                        if not re.match(r'^\d+[/]\d+\s*$', text) and not ('HP' in text or 'hp' in text or '万' in text):
+                                            recognized_texts.append(text)
+                                            logger.debug(f"尝试2识别文本: '{text}'")
+                                        else:
+                                            logger.debug(f"尝试2过滤掉状态文本: '{text}'")
+                        
+                        # 重新拼接所有识别到的文本
+                        question_str = " ".join(recognized_texts)
+                        
+                        # 尝试3: 使用Otsu二值化图像
+                        if not question_str or len(question_str) < 4:
+                            logger.debug("尝试3: 使用Otsu二值化图像")
+                            binary2_3channel = cv2.cvtColor(binary2, cv2.COLOR_GRAY2BGR)
+                            result3 = reader.readtext(
+                                binary2_3channel,
+                                detail=1,
+                                paragraph=False,
+                                text_threshold=0.7  # 二值化图可以使用更高的阈值
+                            )
+                            logger.debug(f"尝试3 OCR结果: {result3}")
+                            
+                            for item in result3:
+                                if len(item) >= 2:
+                                    text = item[1]
+                                    if text and len(text.strip()) > 0 and text not in recognized_texts:
+                                        # 尝试过滤掉游戏状态信息
+                                        if not re.match(r'^\d+[/]\d+\s*$', text) and not ('HP' in text or 'hp' in text or '万' in text):
+                                            recognized_texts.append(text)
+                                            logger.debug(f"尝试3识别文本: '{text}'")
+                                        else:
+                                            logger.debug(f"尝试3过滤掉状态文本: '{text}'")
+                        
+                        # 重新拼接所有识别到的文本
+                        question_str = " ".join(recognized_texts)
+                        
+                        # 尝试4: 使用自适应阈值图像
+                        if not question_str or len(question_str) < 4:
+                            logger.debug("尝试4: 使用自适应阈值图像")
+                            binary3_3channel = cv2.cvtColor(binary3, cv2.COLOR_GRAY2BGR)
+                            result4 = reader.readtext(
+                                binary3_3channel,
+                                detail=1,
+                                paragraph=False,
+                                text_threshold=0.7
+                            )
+                            logger.debug(f"尝试4 OCR结果: {result4}")
+                            
+                            for item in result4:
+                                if len(item) >= 2:
+                                    text = item[1]
+                                    if text and len(text.strip()) > 0 and text not in recognized_texts:
+                                        # 尝试过滤掉游戏状态信息
+                                        if not re.match(r'^\d+[/]\d+\s*$', text) and not ('HP' in text or 'hp' in text or '万' in text):
+                                            recognized_texts.append(text)
+                                            logger.debug(f"尝试4识别文本: '{text}'")
+                                        else:
+                                            logger.debug(f"尝试4过滤掉状态文本: '{text}'")
+                        
+                        # 重新拼接所有识别到的文本
+                        question_str = " ".join(recognized_texts)
+                        
+                        # 清理文本，移除多余空格和特殊字符
+                        question_str = re.sub(r'\s+', ' ', question_str).strip()
+                        logger.debug(f"最终识别的题目文本: '{question_str}'")
+                        
+                        # 如果多次尝试后仍然没有识别到有效文本，尝试使用原始的get_ocr_result方法
+                        if not question_str or len(question_str) < 3:
+                            logger.debug("尝试4: 使用game_helper的get_ocr_result方法")
+                            result4 = self.game_helper.get_ocr_result(processed_img)
+                            logger.debug(f"尝试4 OCR结果: {result4}")
+                            
+                            for item in result4:
+                                if isinstance(item, (list, tuple)) and len(item) >= 2:
+                                    text = item[1]
+                                    question_str += text
+                                    logger.debug(f"尝试4识别文本: '{text}'")
+                    except Exception as e:
+                        import traceback
+                        logger.error(f"OCR识别过程中出错: {e}")
+                        logger.error(f"详细错误堆栈: {traceback.format_exc()}")
+                        question_str = ""
+                    
+                    # 保留有意义的空格，只去除多余空格
+                    question_str = re.sub(r'\s+', ' ', question_str).strip()
+                    
+                    # 如果OCR未识别到有效文本，尝试调整截图区域
+                    if not question_str or len(question_str.strip()) == 0:
+                        logger.warning("OCR未识别到有效文本，尝试调整截图区域")
+                        # 尝试调整截图区域，可能题目区域定位不准确
+                        adjusted_region = (question_region[0] - 10, question_region[1] - 10, question_region[2] - question_region[0] + 20, question_region[3] - question_region[1] + 20)
+                        logger.debug(f"尝试调整后的截图区域: {adjusted_region}")
+                        
+                        # 重新截取调整后的区域
+                        try:
+                            img_adjusted = pyautogui.screenshot(region=adjusted_region)
+                            img_np_adjusted = np.array(img_adjusted)
+                            
+                            # 保存调整后的截图
+                            cv2.imwrite(os.path.join(debug_dir, f'adj_region_{timestamp}.png'), cv2.cvtColor(img_np_adjusted, cv2.COLOR_RGB2BGR))
+                            
+                            # 重新识别
+                            result_adj = reader.readtext(
+                                img_np_adjusted,
+                                detail=1,
+                                paragraph=False,
+                                text_threshold=0.5
+                            )
+                            
+                            adj_texts = []
+                            for item in result_adj:
+                                if len(item) >= 2:
+                                    text = item[1]
+                                    if text and len(text.strip()) > 0:
+                                        # 尝试过滤掉游戏状态信息
+                                        if not re.match(r'^\d+[/]\d+\s*$', text) and not ('HP' in text or 'hp' in text or '万' in text):
+                                            adj_texts.append(text)
+                                            logger.debug(f"调整区域识别文本: '{text}'")
+                                        else:
+                                            logger.debug(f"调整区域过滤掉状态文本: '{text}'")
+                            
+                            # 优先使用过滤后的文本
+                            if adj_texts:
+                                question_str = " ".join(adj_texts)
+                            else:
+                                # 如果过滤后没有文本，使用所有识别结果
+                                adj_texts_all = []
+                                for item in result_adj:
+                                    if len(item) >= 2:
+                                        text = item[1]
+                                        if text and len(text.strip()) > 0:
+                                            adj_texts_all.append(text)
+                                            logger.debug(f"调整区域(不过滤)识别文本: '{text}'")
+                                question_str = " ".join(adj_texts_all)
+                            
+                            question_str = re.sub(r'\s+', ' ', question_str).strip()
+                            logger.debug(f"调整区域后的题目文本: '{question_str}'")
+                        except Exception as e:
+                            logger.error(f"调整截图区域时出错: {e}")
                     
                     # 题目变化时才处理
                     if question_str and question_str != question_str_old:
@@ -761,6 +1006,7 @@ class XianYuHelper:
                         # 查找最佳匹配答案（使用优化的查找算法）
                         best_match = {}
                         best_similarity = 0
+                        candidates_found = 0
                         
                         # 首先进行快速过滤，只计算相似度高于一定阈值的项
                         # 这可以减少计算量，特别是在题库很大的情况下
@@ -768,23 +1014,63 @@ class XianYuHelper:
                             # 简单的字符串包含检查作为快速过滤
                             if any(keyword in question_str for keyword in item['q'][:10]) or \
                                any(keyword in item['q'] for keyword in question_str[:10]):
+                                candidates_found += 1
                                 similarity = stri_similar(question_str, item['q'])
                                 if similarity > best_similarity:
                                     best_match = item
                                     best_similarity = similarity
                         
+                        logger.debug(f"找到 {candidates_found} 个候选答案")
+                        
                         logger.debug("题目识别结果：{}, 相似度：{:.2f}", question_str, best_similarity)
                         
-                        if best_match and best_similarity > self.min_similarity:
-                            logger.info("题库对比：{}，答案：{}", best_match['q'], best_match['ans'])
+                        # 根据题目长度动态调整相似度阈值
+                        base_threshold = self.min_similarity * 0.6  # 降低40%的阈值
+                        
+                        # 对于较短的题目，使用更低的阈值
+                        if len(question_str) > 0:
+                            if len(question_str) < 5:
+                                adjusted_threshold = 0.25  # 极短文本使用更低阈值
+                            elif len(question_str) < 10:
+                                adjusted_threshold = 0.3
+                            else:
+                                adjusted_threshold = max(0.35, base_threshold)
+                        else:
+                            adjusted_threshold = max(0.4, base_threshold)  # 默认最低阈值
+                        logger.debug(f"使用调整后的相似度阈值: {adjusted_threshold} (原始: {self.min_similarity})")
+                        
+                        # 更灵活的匹配条件，考虑题目长度和相似度
+                        if best_match:
+                            # 对于短文本，使用更低的阈值
+                            if len(question_str) < 5 and best_similarity > 0.2:
+                                match_ok = True
+                            # 对于中等长度文本
+                            elif len(question_str) < 10 and best_similarity > 0.3:
+                                match_ok = True
+                            # 对于长文本
+                            elif best_similarity > adjusted_threshold:
+                                match_ok = True
+                            else:
+                                match_ok = False
                             
-                            # 根据答案点击对应按钮
-                            if best_match['ans'] == '对':
-                                self.game_helper.left_click(166, 930, delay=0.02)
-                            elif best_match['ans'] == '错':
-                                self.game_helper.left_click(422, 923, delay=0.02)
+                            if match_ok:
+                                logger.info("题库对比：{}，答案：{}", best_match['q'], best_match['ans'])
+                            
+                                # 根据答案点击对应按钮
+                                if best_match['ans'] == '对':
+                                    x, y = Config.ANSWER_POSITIONS.get(0, (166, 930))
+                                    logger.info(f"点击'对'按钮，坐标: ({x}, {y})")
+                                    self.game_helper.left_click(x, y, delay=0.02)
+                                elif best_match['ans'] == '错':
+                                    x, y = Config.ANSWER_POSITIONS.get(1, (422, 923))
+                                    logger.info(f"点击'错'按钮，坐标: ({x}, {y})")
+                                    self.game_helper.left_click(x, y, delay=0.02)
+                        else:
+                            logger.warning(f"未找到合适的答案匹配，最佳相似度: {best_similarity}, 题目: '{question_str}'")
                 except Exception as e:
+                    import traceback
                     logger.error(f"答题过程中出错: {e}")
+                    logger.error(f"详细错误堆栈: {traceback.format_exc()}")
                     time.sleep(Config.ERROR_RETRY_DELAY)
                 
                 time.sleep(0.2)

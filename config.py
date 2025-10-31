@@ -20,11 +20,11 @@ class Config:
     # 题目区域计算参数
     ANSWER_REGION_FACTOR = 0.1  # 用于计算题目区域的因子
     
-    # 题目区域坐标（游戏窗口内的相对坐标）
-    QUESTION_REGION_LEFT = 25
-    QUESTION_REGION_TOP = 141
-    QUESTION_REGION_WIDTH = 419
-    QUESTION_REGION_HEIGHT = 130
+    # 题目区域坐标（游戏窗口内的相对坐标）- 尝试更好地覆盖问题文本区域
+    QUESTION_REGION_LEFT = 20      # 更靠左
+    QUESTION_REGION_TOP = 100      # 更靠上，尝试捕获标题和问题区域
+    QUESTION_REGION_WIDTH = 430    # 更宽
+    QUESTION_REGION_HEIGHT = 250   # 更高，几乎覆盖整个中间区域
     
     # 答案点击坐标
     ANSWER_POSITIONS = {

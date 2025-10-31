@@ -1,9 +1,9 @@
 {
-  "total_runs": 95,
+  "total_runs": 135,
   "features": {
     "program_start": {
-      "count": 84,
-      "success": 84,
+      "count": 109,
+      "success": 109,
       "failure": 0
     },
     "auto_tower": {
@@ -19,6 +19,11 @@
     "recognize_bottom_buttons": {
       "count": 8,
       "success": 8,
+      "failure": 0
+    },
+    "auto_answer": {
+      "count": 15,
+      "success": 15,
       "failure": 0
     }
   }
